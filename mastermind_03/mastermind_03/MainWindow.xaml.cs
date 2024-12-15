@@ -1,7 +1,9 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,7 +15,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 using Microsoft.VisualBasic;
 
 namespace mastermind_03
@@ -28,37 +29,38 @@ namespace mastermind_03
         private List<string> _players = new List<string>();
         private int _currentPlayerIndex = 0;
         private int _selectedColorCount = 4; // Default to 4 colors
-        private DispatcherTimer _timer;
-        private int _timeLeft = 10;
-
-
+        private string[] highscores = new string[15];
+        private int highscoreCount = 0;
+        private int _attempts = 0;
+        private string _playerName;
         public MainWindow()
         {
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
-            _timer.Tick += Timer_Tick;
             InitializeComponent();
             _availableColors = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" }; // 
             StartNewGame();
             PopulateComboBoxes();
-            this.KeyDown += ToggleDebug;
         }
         private void PopulateComboBoxes()
         {
-           
+
             List<string> colorOptions = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" };
 
-            
+
             ComboBox1.ItemsSource = colorOptions;
             ComboBox2.ItemsSource = colorOptions;
             ComboBox3.ItemsSource = colorOptions;
             ComboBox4.ItemsSource = colorOptions;
         }
 
+
+
         private void StartNewGame()
         {
             _players.Clear(); // Clear data
             _currentPlayerIndex = 0;
+
+            // Move this line after players are added
+            // _playerName = _players[_currentPlayerIndex];
 
             do
             {
@@ -81,20 +83,52 @@ namespace mastermind_03
                 return;
             }
 
+            // Now that players have been added, assign the player name
+            _playerName = _players[_currentPlayerIndex];
+
             MessageBox.Show($"Players ready! First player: {_players[_currentPlayerIndex]}.");
             UpdatePlayerLabels();
             ResetGameForCurrentPlayer();
         }
+        private void Afsluiten_Click(object sender, RoutedEventArgs e)
+        {
+
+            Close();
+
+        }
+
+        private void reset_Click(object sender, RoutedEventArgs e)
+        {
+            ResetUI();
+            StartNewGame();
+        }
+        private void ResetUI()
+        {
+            // Reset Ellipses
+            FeedbackEllipse1.Fill = Brushes.Transparent;
+            FeedbackEllipse2.Fill = Brushes.Transparent;
+            FeedbackEllipse3.Fill = Brushes.Transparent;
+            FeedbackEllipse4.Fill = Brushes.Transparent;
+        }
+
+        private void pogingen_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show($"Aantal pogingen: {_attempts}");
+        }
+
+
+
+
 
         private void UpdatePlayerLabels()
         {
-           
+
             PlayersStackPanel.Children.Clear();
 
-         
+
             foreach (string player in _players)
             {
-                Label playerLabel = new Label
+                System.Windows.Controls.Label playerLabel = new System.Windows.Controls.Label
                 {
                     Content = player,
                     HorizontalAlignment = HorizontalAlignment.Left,
@@ -108,35 +142,55 @@ namespace mastermind_03
                 PlayersStackPanel.Children.Add(playerLabel);
             }
         }
-        private void StartCountdown()
+
+
+        private void RegistreerHighscore(string playerName, int score, int attempts)
         {
-            _timeLeft = 10; 
-            _timer.Start(); 
-        }
-     
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            _timeLeft--;
-            if (_timeLeft <= 0)
+            if (highscoreCount < highscores.Length)
             {
-                _timer.Stop();
-                MessageBox.Show("Time's up! You lost your turn.");
-                _attemptsLeft--;
-                AskToPlayAgain();
+                highscores[highscoreCount++] = $"{playerName} - Pogingen: {attempts} - Score: {score}";
+            }
+        }
+        private void ShowHighscores()
+        {
+            if (highscoreCount == 0)
+            {
+                MessageBox.Show("Er zijn nog geen highscores.", "Mastermind highscores");
             }
             else
             {
-                // Update any UI element for time countdown
-                this.Title = $"Time Left: {_timeLeft} | Attempt {_attemptsLeft}";
+                // Voeg niet-lege entries samen om ze in een lijst weer te geven
+                string highscoreList = string.Join("\n", highscores.Where(h => !string.IsNullOrEmpty(h)));
+                MessageBox.Show(highscoreList, "Mastermind highscores");
             }
         }
+        private void Highscores_Click(object sender, RoutedEventArgs e)
+        {
+            ShowHighscores();
+        }
+        private void AddHighscore(string playerName, int attempts, int score)
+        {
+            if (highscoreCount < highscores.Length)
+            {
+                highscores[highscoreCount] = $"{playerName} - {attempts} pogingen - {score}/100";
+                highscoreCount++;
+            }
+            else
+            {
+                MessageBox.Show("De highscorelijst is vol. Oude scores moeten worden overschreven.", "Highscores vol");
+            }
+        }
+
+
+
+
 
         private void ResetGameForCurrentPlayer()
         {
             Random rand = new Random();
             _code = new List<string>();
 
-            
+
             for (int i = 0; i < _selectedColorCount; i++)
             {
                 _code.Add(_availableColors[rand.Next(_availableColors.Count)]);
@@ -157,18 +211,9 @@ namespace mastermind_03
 
             MessageBox.Show($"New game started for {_players[_currentPlayerIndex]}! Try to guess the code.");
         }
-        private void ToggleDebug(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.F12 && Keyboard.IsKeyDown(Key.LeftCtrl))
-            {
-                DebugCodeTextBox.Visibility = DebugCodeTextBox.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
-                DebugCodeTextBox.Text = string.Join(", ", _code); // Show the code in the TextBox
-            }
-        }
 
         private void CheckButton_Click(object sender, RoutedEventArgs e)
         {
-            StartCountdown();
             List<string> selectedColors = new List<string>
             {
                 ComboBox1.SelectedItem?.ToString() ?? "unknown",
@@ -183,12 +228,10 @@ namespace mastermind_03
                 return;
             }
 
-            // Update the window title with the current attempt number
-            this.Title = $"Poging {_attemptsLeft}";
-
             List<string> feedback = new List<string>();
             for (int i = 0; i < selectedColors.Count; i++)
             {
+
                 if (selectedColors[i] == _code[i])
                 {
                     feedback.Add("Correct");
@@ -204,6 +247,8 @@ namespace mastermind_03
                     _score -= 2;
                 }
             }
+           
+
 
             ScoreLabel.Content = $"Score: {_score}";
             AttemptsLabel.Content = $"Attempts Left: {_attemptsLeft}";
@@ -211,15 +256,18 @@ namespace mastermind_03
 
             _attemptsLeft--;
 
+
             if (selectedColors.SequenceEqual(_code))
             {
                 MessageBox.Show($"You guessed the code! Final Score: {_score}");
                 AskToPlayAgain();
+                AddHighscore(_playerName, _score, _attempts);
             }
             else if (_attemptsLeft == 0)
             {
                 MessageBox.Show($"Game over! The code was: {string.Join(", ", _code)}");
                 AskToPlayAgain();
+                AddHighscore(_playerName, _score, _attempts);
             }
         }
 
@@ -230,6 +278,7 @@ namespace mastermind_03
                 _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
                 UpdatePlayerLabels();
                 ResetGameForCurrentPlayer();
+                RegistreerHighscore(_playerName, _score, _attempts);
             }
             else
             {
@@ -238,7 +287,7 @@ namespace mastermind_03
         }
         private void BuyHintButton_Click(object sender, RoutedEventArgs e)
         {
-            
+
             MessageBoxResult result = MessageBox.Show(
                 "Do you want to buy a hint?\n" +
                 "A correct color costs 15 points.\n" +
@@ -247,7 +296,7 @@ namespace mastermind_03
 
             if (result == MessageBoxResult.Yes)
             {
-              
+
                 MessageBoxResult hintChoice = MessageBox.Show(
                     "Choose a hint type:\n" +
                     "Yes - Correct color\n" +
@@ -256,11 +305,11 @@ namespace mastermind_03
 
                 if (hintChoice == MessageBoxResult.Yes)
                 {
-                    
+
                     if (_score >= 15)
                     {
                         _score -= 15;
-                       
+
                         string hint = GetCorrectColorHint();
                         MessageBox.Show($"Hint: {hint} is in the code but not in the correct position.");
                     }
@@ -271,11 +320,11 @@ namespace mastermind_03
                 }
                 else if (hintChoice == MessageBoxResult.No)
                 {
-                   
+
                     if (_score >= 25)
                     {
                         _score -= 25;
-                        
+
                         string hint = GetCorrectColorInCorrectPositionHint();
                         MessageBox.Show($"Hint: {hint} is in the code and in the correct position.");
                     }
@@ -288,42 +337,8 @@ namespace mastermind_03
         }
         private string GetCorrectColorHint()
         {
-            
-            List<string> availableColors = new List<string>(_code); 
-            List<string> guessedColors = new List<string>
-            {
-                ComboBox1.SelectedItem?.ToString() ?? "unknown",
-                ComboBox2.SelectedItem?.ToString() ?? "unknown",
-                ComboBox3.SelectedItem?.ToString() ?? "unknown",
-                ComboBox4.SelectedItem?.ToString() ?? "unknown"
-            };
 
-           
-            for (int i = 0; i < 4; i++)
-            {
-                if (guessedColors[i] == _code[i]) 
-                {
-                    availableColors.Remove(guessedColors[i]);
-                    guessedColors[i] = "correct"; 
-                }
-            }
-
-            
-            for (int i = 0; i < 4; i++)
-            {
-                if (guessedColors[i] != "correct" && availableColors.Contains(guessedColors[i]))
-                {
-                    availableColors.Remove(guessedColors[i]); 
-                    return guessedColors[i]; 
-                }
-            }
-
-            return "No color found"; 
-        }
-
-        private string GetCorrectColorInCorrectPositionHint()
-        {
-           
+            List<string> availableColors = new List<string>(_code);
             List<string> guessedColors = new List<string>
     {
         ComboBox1.SelectedItem?.ToString() ?? "unknown",
@@ -332,16 +347,68 @@ namespace mastermind_03
         ComboBox4.SelectedItem?.ToString() ?? "unknown"
     };
 
-           
+
             for (int i = 0; i < 4; i++)
             {
-                if (guessedColors[i] == _code[i]) 
+                if (guessedColors[i] == _code[i])
                 {
-                    return guessedColors[i]; 
+                    availableColors.Remove(guessedColors[i]);
+                    guessedColors[i] = "correct";
                 }
             }
 
-            return "No color in correct position"; 
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (guessedColors[i] != "correct" && availableColors.Contains(guessedColors[i]))
+                {
+                    availableColors.Remove(guessedColors[i]);
+                    return guessedColors[i];
+                }
+            }
+
+            return "No color found";
+        }
+
+        
+
+
+        private SolidColorBrush GetBrushFromColorName(string colorName)
+        {
+            switch (colorName)
+            {
+                case "Rood": return Brushes.Red;
+                case "Geel": return Brushes.Yellow;
+                case "Oranje": return Brushes.Orange;
+                case "Wit": return Brushes.White;
+                case "Groen": return Brushes.Green;
+                case "Blauw": return Brushes.Blue;
+                default: return Brushes.Transparent;
+            }
+        }
+
+
+        private string GetCorrectColorInCorrectPositionHint()
+        {
+
+            List<string> guessedColors = new List<string>
+        {
+            ComboBox1.SelectedItem?.ToString() ?? "unknown",
+            ComboBox2.SelectedItem?.ToString() ?? "unknown",
+            ComboBox3.SelectedItem?.ToString() ?? "unknown",
+            ComboBox4.SelectedItem?.ToString() ?? "unknown"
+        };
+
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (guessedColors[i] == _code[i])
+                {
+                    return guessedColors[i];
+                }
+            }
+
+            return "No color in correct position";
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -382,12 +449,13 @@ namespace mastermind_03
                 if (comboBox == ComboBox3) FeedbackEllipse3.Fill = colorBrush;
                 if (comboBox == ComboBox4) FeedbackEllipse4.Fill = colorBrush;
             }
-
         }
+
         private void ColorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
             string selectedColorCount = ColorCountComboBox.SelectedItem?.ToString() ?? "4";
+
 
             switch (selectedColorCount)
             {
@@ -405,7 +473,8 @@ namespace mastermind_03
                     break;
             }
 
-            ResetGameForCurrentPlayer();  
+
+            ResetGameForCurrentPlayer();
         }
 
     }
