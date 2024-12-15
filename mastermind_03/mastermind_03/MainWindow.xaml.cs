@@ -280,21 +280,51 @@ namespace mastermind_03
 
         private void UpdateBorderColor(int index, Brush color)
         {
-            // Apply border 
+            string tooltipText = "";
+
+            // Apply border color and set the tooltip based on feedback
             switch (index)
             {
                 case 0:
                     Border1.BorderBrush = color;
+                    tooltipText = GetTooltipText(color);
+                    Border1.ToolTip = tooltipText;  //  tooltip for Border1
                     break;
                 case 1:
                     Border2.BorderBrush = color;
+                    tooltipText = GetTooltipText(color);
+                    Border2.ToolTip = tooltipText;  //  tooltip for Border2
                     break;
                 case 2:
                     Border3.BorderBrush = color;
+                    tooltipText = GetTooltipText(color);
+                    Border3.ToolTip = tooltipText;  //  tooltip for Border3
                     break;
                 case 3:
                     Border4.BorderBrush = color;
+                    tooltipText = GetTooltipText(color);
+                    Border4.ToolTip = tooltipText;  //  tooltip for Border4
                     break;
+            }
+        }
+        private string GetTooltipText(Brush color)
+        {
+            // Determine the tooltip text based on the border color
+            if (color == Brushes.Wheat)
+            {
+                return "Juiste kleur, foute positie";  // Correct color, wrong position
+            }
+            else if (color == Brushes.DarkRed)
+            {
+                return "Juiste kleur, juiste positie";  // Correct color, correct position
+            }
+            else if (color == Brushes.Transparent)
+            {
+                return "Foute kleur";  // Wrong color
+            }
+            else
+            {
+                return "";  // No feedback or color
             }
         }
 
