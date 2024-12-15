@@ -17,39 +17,82 @@ using Microsoft.VisualBasic;
 
 namespace mastermind_03
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private List<string> _colors = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" };
+        private List<string> _availableColors;
         private List<string> _code;
         private int _attemptsLeft = 10;
         private int _score = 100;
         private List<string> _players = new List<string>();
         private int _currentPlayerIndex = 0;
+        private int _selectedColorCount = 4; // Default 4 colors
 
         public MainWindow()
         {
             InitializeComponent();
-            _code = new List<string>();
+            _availableColors = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" }; // Default color options
             StartNewGame();
+            PopulateComboBoxes();
+        }
+
+        private void ColorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ColorCountComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string selectedContent = selectedItem.Content.ToString();
+
+                
+                switch (selectedContent)
+                {
+                    case "4 Colors":
+                        _selectedColorCount = 4;
+                        break;
+                    case "5 Colors":
+                        _selectedColorCount = 5;
+                        break;
+                    case "6 Colors":
+                        _selectedColorCount = 6;
+                        break;
+                }
+
+                
+                UpdateAvailableColors();
+            }
+        }
+
+        private void UpdateAvailableColors()
+        {
+            
+            if (_selectedColorCount == 4)
+            {
+                _availableColors = new List<string> { "Red", "Yellow", "Orange", "White" };
+            }
+            else if (_selectedColorCount == 5)
+            {
+                _availableColors = new List<string> { "Red", "Yellow", "Orange", "White", "Green" };
+            }
+            else if (_selectedColorCount == 6)
+            {
+                _availableColors = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" };
+            }
+
+         
             PopulateComboBoxes();
         }
 
         private void PopulateComboBoxes()
         {
-            List<string> colorOptions = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" };
-
-            ComboBox1.ItemsSource = colorOptions;
-            ComboBox2.ItemsSource = colorOptions;
-            ComboBox3.ItemsSource = colorOptions;
-            ComboBox4.ItemsSource = colorOptions;
+           
+            ComboBox1.ItemsSource = _availableColors;
+            ComboBox2.ItemsSource = _availableColors;
+            ComboBox3.ItemsSource = _availableColors;
+            ComboBox4.ItemsSource = _availableColors;
         }
 
         private void StartNewGame()
         {
-            _players.Clear(); // Clear old data
+            _players.Clear(); // Clear old  data
             _currentPlayerIndex = 0;
 
             do
@@ -75,39 +118,32 @@ namespace mastermind_03
             MessageBox.Show($"Players ready! First player: {_players[_currentPlayerIndex]}.");
             ResetGameForCurrentPlayer();
         }
+
         private void ResetGameForCurrentPlayer()
         {
-            // Randomize the code
             Random rand = new Random();
             _code = new List<string>();
-            for (int i = 0; i < 4; i++)
+
+            // Generate a random code 
+            for (int i = 0; i < 4; i++)  // The code always has 4 positions
             {
-                _code.Add(_colors[rand.Next(_colors.Count)]);
+                _code.Add(_availableColors[rand.Next(_selectedColorCount)]);  // Randomly select from the available colors
             }
 
             _attemptsLeft = 10;
             _score = 100;
 
-            // Clear combo boxes
             ComboBox1.SelectedItem = null;
             ComboBox2.SelectedItem = null;
             ComboBox3.SelectedItem = null;
             ComboBox4.SelectedItem = null;
 
-            // Reset UI 
             ScoreLabel.Content = $"Score: {_score}";
             AttemptsLabel.Content = $"Attempts Left: {_attemptsLeft}";
-
-            
-            CurrentPlayerLabel.Content = $"Current Player: {_players[_currentPlayerIndex]}";
-
+            PlayerLabel.Content = $"Current Player: {_players[_currentPlayerIndex]}";
             ListBoxHistory.Items.Clear();
 
-            
-            string currentPlayer = _players[_currentPlayerIndex];
-            string nextPlayer = (_currentPlayerIndex + 1 < _players.Count) ? _players[_currentPlayerIndex + 1] : _players[0];
-
-            MessageBox.Show($"New game started for {currentPlayer}! Try to guess the code.\nNext player: {nextPlayer}");
+            MessageBox.Show($"New game started for {_players[_currentPlayerIndex]}! Try to guess the code.");
         }
 
         private void CheckButton_Click(object sender, RoutedEventArgs e)
@@ -129,7 +165,7 @@ namespace mastermind_03
             List<string> feedback = new List<string>();
             for (int i = 0; i < selectedColors.Count; i++)
             {
-                // Update feedback 
+                // Update feedback based on correctness
                 if (selectedColors[i] == _code[i])
                 {
                     feedback.Add("Correct");
@@ -154,180 +190,49 @@ namespace mastermind_03
             ListBoxHistory.Items.Add($"Attempt: {string.Join(", ", selectedColors)} | Feedback: {string.Join(", ", feedback)}");
 
             _attemptsLeft--;
-
             if (selectedColors.SequenceEqual(_code))
             {
                 MessageBox.Show($"You guessed the code! Final Score: {_score}");
-                ProceedToNextPlayer();
+                AskToPlayAgain();
             }
             else if (_attemptsLeft == 0)
             {
                 MessageBox.Show($"Game over! The code was: {string.Join(", ", _code)}");
-                ProceedToNextPlayer();
+                AskToPlayAgain();
             }
         }
-        private void HintButton_Click(object sender, RoutedEventArgs e)
+
+        private void AskToPlayAgain()
         {
-            if (_score < 15)  // Check if the player has enough points to buy a hint
+            if (MessageBox.Show("Do you want to play again?", "Game Over", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                MessageBox.Show("You don't have enough points to buy a hint.");
-                return;
-            }
-
-            // Ask the player to choose a hint type using a message box
-            MessageBoxResult result = MessageBox.Show("Do you want a hint for a correct color (15 points) or a correct color in the correct position (25 points)?",
-                                                       "Buy a Hint", MessageBoxButton.YesNoCancel);
-
-            // Handle the player's choice
-            if (result == MessageBoxResult.Yes)  // Correct color hint
-            {
-                if (_score >= 15)
-                {
-                    _score -= 15;  // Deduct 15 points for a correct color hint
-                    ProvideColorHint();
-                }
-                else
-                {
-                    MessageBox.Show("Not enough points to purchase this hint.");
-                }
-            }
-            else if (result == MessageBoxResult.No)  // Correct color in the correct position hint
-            {
-                if (_score >= 25)
-                {
-                    _score -= 25;  // Deduct 25 points for a correct color in correct position hint
-                    ProvidePositionHint();
-                }
-                else
-                {
-                    MessageBox.Show("Not enough points to purchase this hint.");
-                }
-            }
-            else  // Cancelled
-            {
-                MessageBox.Show("Hint purchase cancelled.");
-            }
-
-            // Update the UI after the hint
-            ScoreLabel.Content = $"Score: {_score}";
-        }
-        private void ProvideColorHint()
-        {
-            // Find the correct colors
-            List<string> selectedColors = new List<string>
-            {
-                ComboBox1.SelectedItem?.ToString() ?? "unknown",
-                ComboBox2.SelectedItem?.ToString() ?? "unknown",
-                ComboBox3.SelectedItem?.ToString() ?? "unknown",
-                ComboBox4.SelectedItem?.ToString() ?? "unknown"
-            };
-
-            List<string> correctColors = selectedColors.Where(color => _code.Contains(color)).ToList();
-
-            if (correctColors.Any())
-            {
-                MessageBox.Show($"Hint: Correct color(s) in your guess: {string.Join(", ", correctColors)}");
+                StartNewGame();
             }
             else
             {
-                MessageBox.Show("No correct colors in your guess.");
+                Close();
             }
-        }
-        private void ProvidePositionHint()
-        {
-            // Check for colors that are correct and in the correct position
-            List<string> selectedColors = new List<string>
-            {
-                ComboBox1.SelectedItem?.ToString() ?? "unknown",
-                ComboBox2.SelectedItem?.ToString() ?? "unknown",
-                ComboBox3.SelectedItem?.ToString() ?? "unknown",
-                ComboBox4.SelectedItem?.ToString() ?? "unknown"
-            };
-
-            List<string> correctPositions = new List<string>();
-
-            for (int i = 0; i < selectedColors.Count; i++)
-            {
-                if (selectedColors[i] == _code[i])
-                {
-                    correctPositions.Add($"{selectedColors[i]} (Position {i + 1})");
-                }
-            }
-
-            if (correctPositions.Any())
-            {
-                MessageBox.Show($"Hint: Correct color(s) in the correct position: {string.Join(", ", correctPositions)}");
-            }
-            else
-            {
-                MessageBox.Show("No colors are correct and in the correct position.");
-            }
-        }
-
-        private void ProceedToNextPlayer()
-        {
-            
-            _currentPlayerIndex++;
-
-            if (_currentPlayerIndex >= _players.Count)
-            {
-                _currentPlayerIndex = 0; 
-            }
-
-         
-            ResetGameForCurrentPlayer();
         }
 
         private void UpdateBorderColor(int index, Brush color)
         {
-            string tooltipText = "";
-
-            // Apply border color and set the tooltip based on feedback
+            // Apply border color based on feedback
             switch (index)
             {
                 case 0:
                     Border1.BorderBrush = color;
-                    tooltipText = GetTooltipText(color);
-                    Border1.ToolTip = tooltipText;  //  tooltip for Border1
                     break;
                 case 1:
                     Border2.BorderBrush = color;
-                    tooltipText = GetTooltipText(color);
-                    Border2.ToolTip = tooltipText;  //  tooltip for Border2
                     break;
                 case 2:
                     Border3.BorderBrush = color;
-                    tooltipText = GetTooltipText(color);
-                    Border3.ToolTip = tooltipText;  //  tooltip for Border3
                     break;
                 case 3:
                     Border4.BorderBrush = color;
-                    tooltipText = GetTooltipText(color);
-                    Border4.ToolTip = tooltipText;  //  tooltip for Border4
                     break;
             }
         }
-        private string GetTooltipText(Brush color)
-        {
-            // Determine the tooltip text based on the border color
-            if (color == Brushes.Wheat)
-            {
-                return "Juiste kleur, foute positie";  // Correct color, wrong position
-            }
-            else if (color == Brushes.DarkRed)
-            {
-                return "Juiste kleur, juiste positie";  // Correct color, correct position
-            }
-            else if (color == Brushes.Transparent)
-            {
-                return "Foute kleur";  // Wrong color
-            }
-            else
-            {
-                return "";  // No feedback or color
-            }
-        }
-
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox)
@@ -360,11 +265,27 @@ namespace mastermind_03
                         break;
                 }
 
-
                 if (comboBox == ComboBox1) FeedbackEllipse1.Fill = colorBrush;
                 if (comboBox == ComboBox2) FeedbackEllipse2.Fill = colorBrush;
                 if (comboBox == ComboBox3) FeedbackEllipse3.Fill = colorBrush;
                 if (comboBox == ComboBox4) FeedbackEllipse4.Fill = colorBrush;
+            }
+        }
+
+        private void BuyHintButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_score > 5)
+            {
+                _score -= 5;
+                ScoreLabel.Content = $"Score: {_score}";
+
+                Random rand = new Random();
+                int hintIndex = rand.Next(4);
+                MessageBox.Show($"Hint: Color {hintIndex + 1} is {_code[hintIndex]}.");
+            }
+            else
+            {
+                MessageBox.Show("Not enough score for a hint.");
             }
         }
     }
