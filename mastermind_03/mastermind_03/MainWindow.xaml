@@ -5,47 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:mastermind_03"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="700">
+        Title="MainWindow" Height="600" Width="700" Background="DarkGray">
     <Grid>
-        <!-- StackPanel to hold all player labels -->
+        <TextBox Name="DebugCodeTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,500,0,0" Width="200" Height="25" Visibility="Collapsed" />
         <StackPanel Name="PlayersStackPanel" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
-            <!-- Player labels will be added dynamically here -->
+
         </StackPanel>
        
-
-        <!-- ComboBox for selecting the number of colors -->
         <ComboBox Name="ColorCountComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,160,0,0" Width="120" SelectionChanged="ColorCountComboBox_SelectionChanged">
             <ComboBoxItem Content="4 Colors" />
             <ComboBoxItem Content="5 Colors" />
             <ComboBoxItem Content="6 Colors" />
         </ComboBox>
 
-        <!-- ComboBoxes for selecting colors -->
         <ComboBox Name="ComboBox1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,190,0,0" Width="120" SelectionChanged="ComboBox_SelectionChanged"/>
         <ComboBox Name="ComboBox2" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="140,190,0,0" Width="120" SelectionChanged="ComboBox_SelectionChanged"/>
         <ComboBox Name="ComboBox3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="270,190,0,0" Width="120" SelectionChanged="ComboBox_SelectionChanged"/>
         <ComboBox Name="ComboBox4" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="400,190,0,0" Width="120" SelectionChanged="ComboBox_SelectionChanged"/>
 
-        <!-- Ellipses for color feedback -->
-        <Ellipse Name="FeedbackEllipse1" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,230,0,0" Fill="Transparent"/>
-        <Ellipse Name="FeedbackEllipse2" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="140,230,0,0" Fill="Transparent"/>
-        <Ellipse Name="FeedbackEllipse3" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="270,230,0,0" Fill="Transparent"/>
-        <Ellipse Name="FeedbackEllipse4" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="400,230,0,0" Fill="Transparent"/>
+        <Ellipse Name="FeedbackEllipse1" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,217,0,0" Fill="Transparent" RenderTransformOrigin="0.973,0.437"/>
+        <Ellipse Name="FeedbackEllipse2" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="170,217,0,0" Fill="Transparent"/>
+        <Ellipse Name="FeedbackEllipse3" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="300,217,0,0" Fill="Transparent" RenderTransformOrigin="1.332,0.264"/>
+        <Ellipse Name="FeedbackEllipse4" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="430,217,0,0" Fill="Transparent"/>
 
-        <!-- Labels for score and attempts -->
         <Label Name="ScoreLabel" Content="Score: 100" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,270,0,0"/>
         <Label Name="AttemptsLabel" Content="Attempts Left: 10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,300,0,0"/>
 
-        <!-- Button for checking guess -->
         <Button Content="Check Guess" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="10,340,0,0" Click="CheckButton_Click"/>
 
-        <!-- Button for buying a hint -->
         <Button Content="Buy Hint" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="120,340,0,0" Click="BuyHintButton_Click"/>
 
-        <!-- ListBox for displaying feedback history -->
         <ListBox Name="ListBoxHistory" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,380,0,0" Width="560" Height="200"/>
 
-        <!-- Tooltips for borders -->
         <Border Name="Border1" BorderBrush="Transparent" BorderThickness="2" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,600,0,0">
             <Border.ToolTip>
                 <ToolTip Content="Wrong Color" />

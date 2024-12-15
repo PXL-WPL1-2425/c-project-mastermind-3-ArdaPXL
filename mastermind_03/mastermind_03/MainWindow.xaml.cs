@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Microsoft.VisualBasic;
 
 namespace mastermind_03
@@ -27,13 +28,20 @@ namespace mastermind_03
         private List<string> _players = new List<string>();
         private int _currentPlayerIndex = 0;
         private int _selectedColorCount = 4; // Default to 4 colors
+        private DispatcherTimer _timer;
+        private int _timeLeft = 10;
+
 
         public MainWindow()
         {
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Tick += Timer_Tick;
             InitializeComponent();
             _availableColors = new List<string> { "Red", "Yellow", "Orange", "White", "Green", "Blue" }; // 
             StartNewGame();
             PopulateComboBoxes();
+            this.KeyDown += ToggleDebug;
         }
         private void PopulateComboBoxes()
         {
@@ -100,6 +108,28 @@ namespace mastermind_03
                 PlayersStackPanel.Children.Add(playerLabel);
             }
         }
+        private void StartCountdown()
+        {
+            _timeLeft = 10; 
+            _timer.Start(); 
+        }
+     
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            _timeLeft--;
+            if (_timeLeft <= 0)
+            {
+                _timer.Stop();
+                MessageBox.Show("Time's up! You lost your turn.");
+                _attemptsLeft--;
+                AskToPlayAgain();
+            }
+            else
+            {
+                // Update any UI element for time countdown
+                this.Title = $"Time Left: {_timeLeft} | Attempt {_attemptsLeft}";
+            }
+        }
 
         private void ResetGameForCurrentPlayer()
         {
@@ -127,9 +157,18 @@ namespace mastermind_03
 
             MessageBox.Show($"New game started for {_players[_currentPlayerIndex]}! Try to guess the code.");
         }
+        private void ToggleDebug(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F12 && Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                DebugCodeTextBox.Visibility = DebugCodeTextBox.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+                DebugCodeTextBox.Text = string.Join(", ", _code); // Show the code in the TextBox
+            }
+        }
 
         private void CheckButton_Click(object sender, RoutedEventArgs e)
         {
+            StartCountdown();
             List<string> selectedColors = new List<string>
             {
                 ComboBox1.SelectedItem?.ToString() ?? "unknown",
@@ -144,10 +183,12 @@ namespace mastermind_03
                 return;
             }
 
+            // Update the window title with the current attempt number
+            this.Title = $"Poging {_attemptsLeft}";
+
             List<string> feedback = new List<string>();
             for (int i = 0; i < selectedColors.Count; i++)
             {
-                
                 if (selectedColors[i] == _code[i])
                 {
                     feedback.Add("Correct");
@@ -170,7 +211,6 @@ namespace mastermind_03
 
             _attemptsLeft--;
 
-           
             if (selectedColors.SequenceEqual(_code))
             {
                 MessageBox.Show($"You guessed the code! Final Score: {_score}");
@@ -251,12 +291,12 @@ namespace mastermind_03
             
             List<string> availableColors = new List<string>(_code); 
             List<string> guessedColors = new List<string>
-    {
-        ComboBox1.SelectedItem?.ToString() ?? "unknown",
-        ComboBox2.SelectedItem?.ToString() ?? "unknown",
-        ComboBox3.SelectedItem?.ToString() ?? "unknown",
-        ComboBox4.SelectedItem?.ToString() ?? "unknown"
-    };
+            {
+                ComboBox1.SelectedItem?.ToString() ?? "unknown",
+                ComboBox2.SelectedItem?.ToString() ?? "unknown",
+                ComboBox3.SelectedItem?.ToString() ?? "unknown",
+                ComboBox4.SelectedItem?.ToString() ?? "unknown"
+            };
 
            
             for (int i = 0; i < 4; i++)
@@ -306,14 +346,49 @@ namespace mastermind_03
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            
+            if (sender is ComboBox comboBox)
+            {
+                string selectedColor = comboBox.SelectedItem?.ToString() ?? "";
+                Brush colorBrush;
+
+                switch (selectedColor)
+                {
+                    case "Red":
+                        colorBrush = Brushes.Red;
+                        break;
+                    case "Yellow":
+                        colorBrush = Brushes.Yellow;
+                        break;
+                    case "Orange":
+                        colorBrush = Brushes.Orange;
+                        break;
+                    case "White":
+                        colorBrush = Brushes.White;
+                        break;
+                    case "Green":
+                        colorBrush = Brushes.Green;
+                        break;
+                    case "Blue":
+                        colorBrush = Brushes.Blue;
+                        break;
+                    default:
+                        colorBrush = Brushes.Transparent;
+                        break;
+                }
+
+
+                if (comboBox == ComboBox1) FeedbackEllipse1.Fill = colorBrush;
+                if (comboBox == ComboBox2) FeedbackEllipse2.Fill = colorBrush;
+                if (comboBox == ComboBox3) FeedbackEllipse3.Fill = colorBrush;
+                if (comboBox == ComboBox4) FeedbackEllipse4.Fill = colorBrush;
+            }
+
         }
         private void ColorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            
-            string selectedColorCount = ColorCountComboBox.SelectedItem?.ToString() ?? "4"; 
 
-           
+            string selectedColorCount = ColorCountComboBox.SelectedItem?.ToString() ?? "4";
+
             switch (selectedColorCount)
             {
                 case "4":
@@ -330,7 +405,6 @@ namespace mastermind_03
                     break;
             }
 
-            
             ResetGameForCurrentPlayer();  
         }
 
