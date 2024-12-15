@@ -61,6 +61,7 @@
             <Label Name="Player2Label" Content="Player 2: (inactive)" FontWeight="Bold" Foreground="Gray" />
             <Label Name="Player3Label" Content="Player 3: (inactive)" FontWeight="Bold" Foreground="Gray" />
             <Label Name="Player4Label" Content="Player 4: (inactive)" FontWeight="Bold" Foreground="Gray" />
+            <Button Name="HintButton" Content="Request Hint" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10, 50, 0, 0" Click="HintButton_Click"/>
         </StackPanel>
 
         <!-- History -->

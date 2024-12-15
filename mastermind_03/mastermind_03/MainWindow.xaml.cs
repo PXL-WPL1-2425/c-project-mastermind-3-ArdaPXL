@@ -166,6 +166,103 @@ namespace mastermind_03
                 ProceedToNextPlayer();
             }
         }
+        private void HintButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_score < 15)  // Check if the player has enough points to buy a hint
+            {
+                MessageBox.Show("You don't have enough points to buy a hint.");
+                return;
+            }
+
+            // Ask the player to choose a hint type using a message box
+            MessageBoxResult result = MessageBox.Show("Do you want a hint for a correct color (15 points) or a correct color in the correct position (25 points)?",
+                                                       "Buy a Hint", MessageBoxButton.YesNoCancel);
+
+            // Handle the player's choice
+            if (result == MessageBoxResult.Yes)  // Correct color hint
+            {
+                if (_score >= 15)
+                {
+                    _score -= 15;  // Deduct 15 points for a correct color hint
+                    ProvideColorHint();
+                }
+                else
+                {
+                    MessageBox.Show("Not enough points to purchase this hint.");
+                }
+            }
+            else if (result == MessageBoxResult.No)  // Correct color in the correct position hint
+            {
+                if (_score >= 25)
+                {
+                    _score -= 25;  // Deduct 25 points for a correct color in correct position hint
+                    ProvidePositionHint();
+                }
+                else
+                {
+                    MessageBox.Show("Not enough points to purchase this hint.");
+                }
+            }
+            else  // Cancelled
+            {
+                MessageBox.Show("Hint purchase cancelled.");
+            }
+
+            // Update the UI after the hint
+            ScoreLabel.Content = $"Score: {_score}";
+        }
+        private void ProvideColorHint()
+        {
+            // Find the correct colors
+            List<string> selectedColors = new List<string>
+            {
+                ComboBox1.SelectedItem?.ToString() ?? "unknown",
+                ComboBox2.SelectedItem?.ToString() ?? "unknown",
+                ComboBox3.SelectedItem?.ToString() ?? "unknown",
+                ComboBox4.SelectedItem?.ToString() ?? "unknown"
+            };
+
+            List<string> correctColors = selectedColors.Where(color => _code.Contains(color)).ToList();
+
+            if (correctColors.Any())
+            {
+                MessageBox.Show($"Hint: Correct color(s) in your guess: {string.Join(", ", correctColors)}");
+            }
+            else
+            {
+                MessageBox.Show("No correct colors in your guess.");
+            }
+        }
+        private void ProvidePositionHint()
+        {
+            // Check for colors that are correct and in the correct position
+            List<string> selectedColors = new List<string>
+            {
+                ComboBox1.SelectedItem?.ToString() ?? "unknown",
+                ComboBox2.SelectedItem?.ToString() ?? "unknown",
+                ComboBox3.SelectedItem?.ToString() ?? "unknown",
+                ComboBox4.SelectedItem?.ToString() ?? "unknown"
+            };
+
+            List<string> correctPositions = new List<string>();
+
+            for (int i = 0; i < selectedColors.Count; i++)
+            {
+                if (selectedColors[i] == _code[i])
+                {
+                    correctPositions.Add($"{selectedColors[i]} (Position {i + 1})");
+                }
+            }
+
+            if (correctPositions.Any())
+            {
+                MessageBox.Show($"Hint: Correct color(s) in the correct position: {string.Join(", ", correctPositions)}");
+            }
+            else
+            {
+                MessageBox.Show("No colors are correct and in the correct position.");
+            }
+        }
 
         private void ProceedToNextPlayer()
         {
