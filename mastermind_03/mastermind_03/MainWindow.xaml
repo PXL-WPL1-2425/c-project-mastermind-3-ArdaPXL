@@ -54,6 +54,7 @@
         <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,10,0">
             <Label Name="ScoreLabel" Content="Score: 100" FontWeight="Bold" Margin="0,0,0,5" />
             <Label Name="AttemptsLabel" Content="Attempts Left: 10" FontWeight="Bold" />
+            <Label x:Name="CurrentPlayerLabel" Content="Current Player: " />
 
             <!-- Player Labels -->
             <Label Name="Player1Label" Content="Player 1: (inactive)" FontWeight="Bold" Foreground="Gray" />
